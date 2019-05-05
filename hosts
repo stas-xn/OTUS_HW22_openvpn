@@ -1,0 +1,3 @@
+[all]
+openvpn-server ansible_ssh_host=127.0.0.1 ansible_port=2222 ansible_ssh_user=vagrant ansible_private_key_file=.vagrant/machines/openvpn-server/virtualbox/private_key
+openvpn-client ansible_ssh_host=127.0.0.1 ansible_port=2200 ansible_ssh_user=vagrant ansible_private_key_file=.vagrant/machines/openvpn-client/virtualbox/private_key

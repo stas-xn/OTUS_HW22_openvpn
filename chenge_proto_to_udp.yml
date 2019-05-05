@@ -1,0 +1,35 @@
+---
+- name: Replace udp to tcp
+  hosts: all
+  become: yes
+  tasks:
+  - name: replace udp to tcp on server
+    block:
+    - replace:
+        path: /etc/openvpn/server.conf
+        regexp: 'proto tcp'
+        replace: 'proto udp'
+      #backup: yes
+
+
+    - name: restart openvpn server 
+      systemd: 
+        name: openvpn@server
+        state: restarted
+
+    when: ansible_hostname == "openvpn-server"      
+    
+  - name: replace udp to tcp on client
+    block:
+    - replace:
+        path: /etc/openvpn/client.conf
+        regexp: 'proto tcp'
+        replace: 'proto udp'
+        #backup: yes
+           
+    - name: restart openvpn client 
+      systemd: 
+          name: openvpn@client
+          state: restarted
+
+    when: ansible_hostname == "openvpn-client" 

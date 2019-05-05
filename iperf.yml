@@ -1,0 +1,26 @@
+---
+- name: iperf
+  hosts: all
+  become: yes
+  tasks:
+   - name: Set server and generate certs
+     block:
+     - name: start iperf server
+       shell:
+         iperf -s -D
+    
+     when: ansible_hostname == "openvpn-server" 
+
+   - name: Set server and generate certs
+     block:
+     - name: start iperf client
+       shell:
+         iperf -c 172.16.10.1
+       register: result
+
+     - debug:
+        var: result.stdout_lines
+        verbosity: 2
+    
+     when: ansible_hostname == "openvpn-client"     
+   

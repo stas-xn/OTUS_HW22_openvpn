@@ -1,0 +1,105 @@
+---
+- name: OpenVPN
+  hosts: all
+  become: yes
+  tasks:
+  - name: Install epel-release
+    yum:
+        name: 
+        - epel-release 
+  
+  - name: Install openvpn-server
+    yum:
+        name: 
+        - openvpn
+        - easy-rsa
+        - iperf
+        state: latest
+  
+  - name: Set server and generate certs
+    block:
+    - name: Create symlink on  openssl-1.0.cnf
+      shell: |
+        ln -s  openssl-1.0.cnf  openssl.cnf
+      args:
+        chdir: /usr/share/easy-rsa/3/
+        creates: openssl.cnf
+  
+    - name: Generat cert and keys
+      shell: |
+        /usr/share/easy-rsa/3/easyrsa --batch init-pki
+        /usr/share/easy-rsa/3/easyrsa --batch build-ca nopass
+        /usr/share/easy-rsa/3/easyrsa --batch gen-dh
+        /usr/share/easy-rsa/3/easyrsa --batch --req-cn={{ ansible_facts['hostname'] }} --req-c=RU --req-st=State --req-city=Kaliningrad --req-org=HOME --req-email=maslov@otus.ru --req-ou=OTUS gen-req server nopass
+        /usr/share/easy-rsa/3/easyrsa --batch sign-req server server 
+        /usr/share/easy-rsa/3/easyrsa --batch --req-cn=client1 --req-c=RU --req-st=State --req-city=Kaliningrad --req-org=HOME --req-email=maslov@otus.ru --req-ou=OTUS gen-req client1 nopass
+        /usr/share/easy-rsa/3/easyrsa --batch sign-req client client1
+      args:
+         chdir: /etc/openvpn/
+  
+    - name: Generate TLS auth cer
+      shell: openvpn --genkey --secret ta.key
+      args:
+          chdir: /etc/openvpn/pki/
+          creates: /etc/openvpn/pki/ta.key
+  
+    - name: Copy server configuration file
+      copy:
+        src:  server.conf
+        dest: /etc/openvpn/server.conf
+  
+    - name: Enable OpenVPN server
+      systemd:
+        name: openvpn@server
+        enabled: yes
+  
+    - name: start openvpn server 
+      systemd: 
+        name: openvpn@server
+        state: started
+  
+    - name: Copy client cert
+      fetch:
+        src: "{{ item }}"
+        dest: ./clients_certs/
+        flat: yes
+        fail_on_missing: no
+      with_items:
+        - /etc/openvpn/pki/ca.crt
+        - /etc/openvpn/pki/ta.key
+        - /etc/openvpn/pki/issued/client1.crt
+        - /etc/openvpn/pki/private/client1.key
+    when: ansible_hostname == "openvpn-server"      
+    
+  - name: Set client and copy certs
+    block:
+    - name: Copy client configuration file
+      copy:
+        src:  client.conf
+        dest: /etc/openvpn/client.conf
+    
+    - name: copy certc to client
+      copy: src=./clients_certs/{{ item }} dest=/etc/openvpn
+      with_items:
+      - ca.crt
+      - ta.key
+      - client1.crt
+      - client1.key
+
+    - name: Copy client configuration file
+      copy:
+        src:  client.conf
+        dest: /etc/openvpn/client.conf
+
+    - name: Enable OpenVPN client
+      systemd:
+        name: openvpn@client
+        enabled: yes
+  
+    - name: start openvpn client 
+      systemd: 
+        name: openvpn@client
+        state: started
+
+
+    when: ansible_hostname == "openvpn-client"
