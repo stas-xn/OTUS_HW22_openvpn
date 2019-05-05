@@ -9,12 +9,11 @@ VPN
 
 3*. Самостоятельно изучить, поднять ocserv и подключиться с хоста к виртуалке 
 ### 1. Между двумя виртуалками поднять vpn  
-- Запустить стенд  ```vagrant up && ansible-playbook
- start yaml ``` 
+- Запустить стенд  ```vagrant up && ansible-playbook start.yml ``` 
  - Стэнд поднимится с  openvpn udp
- - Измерит скорость соеденения ```ansible-playbook iperf.yaml -vv```
+ - Измерит скорость соеденения ```ansible-playbook iperf.yml -vv```
  - Изменить протокол на tcp ``` ansible-playbook chenge_proto_to_tcp.yml```
- - Снова измерит скорость соеденения ```ansible-playbook iperf.yaml -vv```
+ - Снова измерит скорость соеденения ```ansible-playbook iperf.yml -vv```
 
 ### Вывод iperf
 #### OpenVPN with proto tcp

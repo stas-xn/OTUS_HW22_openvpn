@@ -7,7 +7,7 @@
      block:
      - name: start iperf server
        shell:
-         iperf -s -D
+         iperf -s -D -l
     
      when: ansible_hostname == "openvpn-server" 
 
