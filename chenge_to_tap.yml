@@ -7,8 +7,8 @@
     block:
     - replace:
         path: /etc/openvpn/server.conf
-        regexp: 'proto udp'
-        replace: 'proto tcp'
+        regexp: 'dev tun'
+        replace: 'dev tap'
       #backup: yes
 
 
@@ -23,8 +23,8 @@
     block:
     - replace:
         path: /etc/openvpn/client.conf
-        regexp: 'proto udp'
-        replace: 'proto tcp'
+        regexp: 'dev tun'
+        replace: 'dev tap'
         #backup: yes
            
     - name: restart openvpn client 
